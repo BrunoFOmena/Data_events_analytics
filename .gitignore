@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.db
+.env
+node_modules/
+.next/
+.DS_Store
+dist/
+build/
+Proj_tec.md
