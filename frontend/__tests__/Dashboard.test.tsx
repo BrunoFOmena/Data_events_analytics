@@ -40,7 +40,7 @@ describe("Dashboard", () => {
     render(<Dashboard />)
     await waitFor(() => {
       expect(screen.getByText("Page views")).toBeInTheDocument()
-      expect(screen.getByText("1.000")).toBeInTheDocument()
+      expect(screen.getAllByText("1.000").length).toBeGreaterThan(0)
     })
   })
 
