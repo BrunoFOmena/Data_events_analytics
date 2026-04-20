@@ -2,8 +2,6 @@
 
 Produto de dados minimo viavel para receber eventos de negocio via API, persistir em PostgreSQL, expor metricas agregadas e apresentar um dashboard em Next.js.
 
-Atende ao escopo definido em `Proj_tec.md`: ingestao idempotente, API de metricas, dashboard com serie temporal, KPIs, funil, top SKUs e feed de ultimos eventos, tudo containerizado.
-
 ## Stack
 
 - Backend: Python 3.12, FastAPI, SQLAlchemy 2, PostgreSQL 16
@@ -21,10 +19,10 @@ Atende ao escopo definido em `Proj_tec.md`: ingestao idempotente, API de metrica
                                        +------------+
 ```
 
-Camadas de dados (modelo simplificado bronze/silver):
+Camadas de dados:
 
-- bronze: tabela `events` recebe o payload bruto validado (`event_id`, `event_type`, `occurred_at`, `user_id`, `properties` JSON). Indices em `event_type` e `occurred_at` para suportar consultas por janela.
-- silver/gold: as consultas em `/metrics/*` executam agregacoes SQL sobre `events` (group by + date_trunc). Nao introduzimos tabela materializada para manter a solucao simples. Um job de refresh materializado esta previsto no trecho "opcional" (ver abaixo) e pode ser adicionado sem mudar a API.
+- tabela `events` recebe o payload bruto validado (`event_id`, `event_type`, `occurred_at`, `user_id`, `properties` JSON). Indices em `event_type` e `occurred_at` para suportar consultas por janela.
+- as consultas em `/metrics/*` executam agregacoes SQL sobre `events` (group by + date_trunc).
 
 Decisoes:
 
@@ -143,10 +141,6 @@ Testes cobrem: health, ingestao unitaria, ingestao em lote com deduplicacao, val
 - Node: `package.json` com versoes fixadas, `npm` padrao.
 
 ## Diferenciais previstos (nao implementados para manter o MVP enxuto)
-
-- worker assincrono (Celery/RQ) alimentando tabela materializada `gold_daily_metrics` via cron.
-- metricas Prometheus em `/metrics-prom` via `prometheus-fastapi-instrumentator`.
-- GitHub Actions com lint (ruff) + pytest + vitest no PR.
 
 ## Estrutura
 
