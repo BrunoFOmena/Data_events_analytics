@@ -25,6 +25,7 @@ type State = {
 }
 
 const EMPTY: State = { kpis: null, series: [], funnel: [], skus: [], recent: [] }
+const DATE_RANGE_ERROR = "A data inicial deve ser anterior à data final para carregar as metricas."
 
 export default function Dashboard() {
   const today = useMemo(() => new Date(), [])
@@ -39,12 +40,17 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [healthy, setHealthy] = useState(true)
+  const dateRangeInvalid = useMemo(() => fromInputDate(start) >= fromInputDate(end), [start, end])
 
   const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
     const s = fromInputDate(start)
     const e = fromInputDate(end)
+    if (s >= e) {
+      setError(DATE_RANGE_ERROR)
+      return
+    }
+    setLoading(true)
+    setError(null)
     try {
       const [kpis, series, funnel, skus, recent] = await Promise.all([
         api.kpis(s, e),
@@ -86,6 +92,7 @@ export default function Dashboard() {
   }, [state.series])
 
   const maxFunnel = state.funnel[0]?.total || 1
+  const showRetry = error !== DATE_RANGE_ERROR
 
   return (
     <div className="container">
@@ -94,7 +101,7 @@ export default function Dashboard() {
           <h1>Event Analytics</h1>
           <div className="status">
             <span className={`dot ${healthy ? "" : "down"}`} />
-            {healthy ? "API saudavel" : "API indisponivel - exibindo ultimo estado"}
+            {healthy ? "online" : "API indisponivel - exibindo ultimo estado"}
           </div>
         </div>
         <div className="controls">
@@ -117,17 +124,21 @@ export default function Dashboard() {
           </label>
           <label>
             &nbsp;
-            <button onClick={load} disabled={loading}>
+            <button onClick={load} disabled={loading || dateRangeInvalid}>
               {loading ? "carregando..." : "atualizar"}
             </button>
           </label>
         </div>
       </header>
 
+      {dateRangeInvalid && (
+        <div className="input-error">{DATE_RANGE_ERROR}</div>
+      )}
+
       {error && (
         <div className="error">
-          <span>falha: {error}</span>
-          <button onClick={load}>tentar novamente</button>
+          <span>{showRetry ? `falha: ${error}` : error}</span>
+          {showRetry && <button onClick={load}>tentar novamente</button>}
         </div>
       )}
 

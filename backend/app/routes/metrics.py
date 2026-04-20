@@ -111,7 +111,7 @@ def top_skus(
         from events
         where event_type = 'purchase'
           and occurred_at >= :start and occurred_at < :end
-          and properties ? 'sku'
+          and properties->>'sku' is not null
         group by 1
         order by total desc
         limit :limit
